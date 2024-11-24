@@ -36,41 +36,72 @@
             </style>
         
 </head>
-<script>
-    // Verifica si el navegador soporta la geolocalización
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-            (position) => {
-                const lat = position.coords.latitude;
-                const lon = position.coords.longitude;
-
-                // Agrega un marcador con las coordenadas GPS
-                const userMarker = L.marker([lat, lon], {
-                    icon: L.icon({
-                        iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
-                        iconSize: [25, 41],
-                        iconAnchor: [12, 41],
-                        popupAnchor: [1, -34]
-                    })
-                }).addTo(map);
-                userMarker.bindPopup("Tu ubicación actual").openPopup();
-
-                // Centra el mapa en la ubicación actual
-                map.setView([lat, lon], 13);
-            },
-            (error) => {
-                console.error("Error al obtener la ubicación: ", error.message);
-            }
-        );
-    } else {
-        alert("La geolocalización no está soportada por este navegador.");
-    }
-</script>
-
 <body>
     
     
             <div class="folium-map" id="map_5fa1690413f2bc2d8e916b2f219de9be" ></div>
+<script>
+    // Función para obtener y centrar la ubicación actual
+    function centrarEnUbicacionActual() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const lat = position.coords.latitude;
+                    const lon = position.coords.longitude;
+
+                    // Crear o mover el marcador de la ubicación actual
+                    if (window.userMarker) {
+                        // Si ya existe, mover el marcador
+                        userMarker.setLatLng([lat, lon]).bindPopup("Tu ubicación actual").openPopup();
+                    } else {
+                        // Si no existe, crear un nuevo marcador
+                        window.userMarker = L.marker([lat, lon], {
+                            icon: L.icon({
+                                iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
+                                iconSize: [25, 41],
+                                iconAnchor: [12, 41],
+                                popupAnchor: [1, -34]
+                            })
+                        }).addTo(map).bindPopup("Tu ubicación actual").openPopup();
+                    }
+
+                    // Centrar el mapa en la ubicación actual
+                    map.setView([lat, lon], 13);
+                },
+                (error) => {
+                    alert("Error al obtener la ubicación: " + error.message);
+                }
+            );
+        } else {
+            alert("La geolocalización no está soportada por este navegador.");
+        }
+    }
+
+    // Centrar el mapa automáticamente en la ubicación actual al cargar
+    centrarEnUbicacionActual();
+
+    // Agregar un botón personalizado al mapa
+    const botonUbicacion = L.control({ position: 'topright' });
+
+    botonUbicacion.onAdd = function () {
+        const div = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom');
+        div.style.backgroundColor = 'white';
+        div.style.width = '30px';
+        div.style.height = '30px';
+        div.style.display = 'flex';
+        div.style.justifyContent = 'center';
+        div.style.alignItems = 'center';
+        div.style.cursor = 'pointer';
+        div.title = 'Centrar en mi ubicación';
+
+        // Icono del botón (puedes personalizarlo)
+        div.innerHTML = '<b>📍</b>';
+        div.onclick = centrarEnUbicacionActual;
+        return div;
+    };
+
+    botonUbicacion.addTo(map);
+</script>
         
 </body>
 <script>
